@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Driver Inventory · 드라이버 체크리스트</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1a2f4a;
+    --navy-dark: #0f1f33;
+    --coral: #ff7758;
+    --coral-light: #ffe3dc;
+    --gold: #7FA968;
+    --gold-light: #d4e3c8;
+    --bg: #f8f9fc;
+    --card: #ffffff;
+    --text: #1a2332;
+    --text-soft: #6b7280;
+    --border: #e5e7eb;
+    --bar-bg: #f1f3f7;
+    --bar-fill: #ff7758;
+    --shadow-sm: 0 2px 8px rgba(26, 47, 74, 0.06);
+    --shadow-md: 0 8px 24px rgba(26, 47, 74, 0.12);
+    --radius: 14px;
+  }
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans CJK KR", "Noto Sans CJK JP", "Noto Sans CJK SC", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .app {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 18px 60px;
+    min-height: 100vh;
+  }
+
+  /* ===== 공통 ===== */
+  .screen { display: none; animation: fadeIn 0.4s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 28px 22px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+  }
+  .brand-mark {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-soft);
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--navy);
+    text-align: center;
+    line-height: 1.3;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 14px;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--coral);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .btn:hover { background: #ff6644; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { background: #d1d5db; cursor: not-allowed; transform: none; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--navy);
+    border: 1.5px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg); border-color: var(--navy); }
+
+  /* ===== 1. 언어 선택 ===== */
+  #screen-lang { padding-top: 40px; }
+  .lang-prompt {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-soft);
+    margin-bottom: 20px;
+    line-height: 1.8;
+  }
+  .lang-prompt span { display: block; }
+  .lang-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .lang-btn {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    text-align: center;
+  }
+  .lang-btn:hover {
+    border-color: var(--coral);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+  .lang-flag { font-size: 28px; margin-bottom: 6px; display: block; }
+  .lang-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  /* ===== 2. 인트로 ===== */
+  .intro-text {
+    color: var(--text);
+    font-size: 14.5px;
+    line-height: 1.75;
+    margin-bottom: 22px;
+  }
+  .scale-info {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+  }
+  .scale-info-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-soft);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .scale-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 13.5px;
+  }
+  .scale-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--coral-light);
+    color: var(--coral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* ===== 3. 검사 진행 ===== */
+  .progress-bar {
+    background: var(--bar-bg);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-fill {
+    background: var(--coral);
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 3px;
+  }
+  .progress-text {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-soft);
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+  .question-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 32px 22px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    min-height: 220px;
+  }
+  .question-num {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--coral);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .question-text {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--navy);
+    font-weight: 500;
+    margin-bottom: 26px;
+    min-height: 56px;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: white;
+  }
+  .option:hover { border-color: var(--coral); background: #fffaf8; }
+  .option.selected {
+    border-color: var(--coral);
+    background: var(--coral-light);
+  }
+  .option-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--text-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+  }
+  .option.selected .option-num {
+    background: var(--coral);
+    color: white;
+  }
+  .option-label {
+    font-size: 14px;
+    color: var(--text);
+  }
+  .nav-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .nav-row .btn { flex: 1; padding: 14px; font-size: 14px; }
+
+  /* ===== 4. 결과 ===== */
+  .result-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .result-intro {
+    color: var(--text-soft);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  .score-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .score-label {
+    flex: 0 0 90px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.3;
+  }
+  .score-label small {
+    display: block;
+    color: var(--text-soft);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+  .score-bar-wrap {
+    flex: 1;
+    background: var(--bar-bg);
+    height: 26px;
+    border-radius: 13px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+  }
+  .seg {
+    height: 100%;
+    transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .seg-behavior { background: var(--navy); }
+  .seg-stress { background: var(--coral); }
+  .seg-strength { background: var(--gold); }
+  .score-row.top .score-bar-wrap {
+    box-shadow: 0 0 0 2px var(--coral);
+  }
+  .score-total {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--navy);
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 2px 7px;
+    border-radius: 8px;
+    pointer-events: none;
+  }
+  .score-legend {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--text-soft);
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  .legend-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .level-badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: var(--text-soft);
+    background: var(--bg);
+    letter-spacing: 0.5px;
+  }
+  .top-driver-card {
+    background: linear-gradient(135deg, #1a2f4a 0%, #2a4060 100%);
+    color: white;
+    padding: 28px 24px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+  }
+  .top-driver-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .top-driver-name {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .top-driver-en {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 2px;
+    margin-bottom: 22px;
+  }
+  .detail-block { margin-bottom: 18px; }
+  .detail-block:last-child { margin-bottom: 0; }
+  .detail-label {
+    display: inline-block;
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .label-strength { background: rgba(255,255,255,0.15); color: white; }
+  .label-shadow { background: rgba(255,255,255,0.15); color: white; }
+  .label-permission { background: var(--coral); color: white; }
+  .detail-text {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: rgba(255,255,255,0.92);
+  }
+  .label-permission + .detail-text {
+    color: #ffd6c9;
+    font-weight: 600;
+  }
+  .service-card {
+    background: var(--coral-light);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    margin-bottom: 20px;
+  }
+  .service-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--coral);
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .service-text {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--navy);
+  }
+  .closing-card {
+    text-align: center;
+    padding: 28px 20px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+  }
+  .closing-text {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--navy);
+    font-weight: 500;
+  }
+  .screenshot-hint {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-soft);
+    padding: 14px;
+    background: var(--bg);
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  /* ===== 푸터 ===== */
+  .footer {
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-top: 30px;
+    padding-top: 20px;
+    text-transform: uppercase;
+  }
+
+  /* ===== 반응형 ===== */
+  @media (max-width: 480px) {
+    .app { padding: 16px 14px 60px; }
+    .card, .question-card { padding: 22px 18px; }
+    h1 { font-size: 22px; }
+    .question-text { font-size: 16px; }
+    .top-driver-name { font-size: 21px; }
+    .score-label { flex: 0 0 78px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 1. 언어 선택 화면 -->
+  <div id="screen-lang" class="screen active">
+    <div class="brand-mark">TRANSACTIONAL ANALYSIS · DRIVER INVENTORY</div>
+    <h1>Driver Inventory<br><span style="font-size:18px;color:var(--text-soft);font-weight:500;">드라이버 체크리스트</span></h1>
+    <div class="lang-prompt" style="margin-top:30px;">
+      <span>언어를 선택해 주세요</span>
+      <span>Please select your language</span>
+      <span>请选择语言 · 言語を選択してください</span>
+    </div>
+    <div class="lang-grid">
+      <button class="lang-btn" onclick="selectLang('ko')">
+        <span class="lang-flag">🇰🇷</span>
+        <div class="lang-label">한국어</div>
+      </button>
+      <button class="lang-btn" onclick="selectLang('en')">
+        <span class="lang-flag">🇺🇸</span>
+        <div class="lang-label">English</div>
+      </button>
+      <button class="lang-btn" onclick="selectLang('zh')">
+        <span class="lang-flag">🇨🇳</span>
+        <div class="lang-label">中文</div>
+      </button>
+      <button class="lang-btn" onclick="selectLang('ja')">
+        <span class="lang-flag">🇯🇵</span>
+        <div class="lang-label">日本語</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. 인트로 화면 -->
+  <div id="screen-intro" class="screen">
+    <div class="brand-mark">DRIVER INVENTORY</div>
+    <h1 id="intro-title"></h1>
+    <p class="subtitle" id="intro-subtitle"></p>
+    <div class="card">
+      <h2 id="intro-heading"></h2>
+      <p class="intro-text" id="intro-body"></p>
+      <div class="scale-info">
+        <div class="scale-info-label" id="scale-info-label"></div>
+        <div class="scale-row"><span class="scale-num">1</span><span id="s1"></span></div>
+        <div class="scale-row"><span class="scale-num">2</span><span id="s2"></span></div>
+        <div class="scale-row"><span class="scale-num">3</span><span id="s3"></span></div>
+        <div class="scale-row"><span class="scale-num">4</span><span id="s4"></span></div>
+        <div class="scale-row"><span class="scale-num">5</span><span id="s5"></span></div>
+      </div>
+      <button class="btn" id="start-btn" onclick="startTest()"></button>
+    </div>
+  </div>
+
+  <!-- 3. 검사 진행 화면 -->
+  <div id="screen-test" class="screen">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:4%"></div>
+    </div>
+    <div class="progress-text" id="progress-text"></div>
+    <div class="question-card">
+      <div class="question-num" id="q-num"></div>
+      <div class="question-text" id="q-text"></div>
+      <div class="options" id="q-options"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="prev-btn" onclick="prevQ()"></button>
+      <button class="btn" id="next-btn" onclick="nextQ()" disabled></button>
+    </div>
+  </div>
+
+  <!-- 4. 결과 화면 -->
+  <div id="screen-result" class="screen">
+    <div class="brand-mark">YOUR DRIVER PROFILE</div>
+    <div class="result-header">
+      <h1 id="result-title"></h1>
+      <p class="result-intro" id="result-intro"></p>
+    </div>
+
+    <div class="card">
+      <h2 id="score-table-title"></h2>
+      <div class="score-legend" id="score-legend"></div>
+      <div class="score-list" id="score-list"></div>
+    </div>
+
+    <div class="top-driver-card" id="top-driver-card">
+      <div class="top-driver-label" id="top-driver-label"></div>
+      <div class="top-driver-name" id="top-driver-name"></div>
+      <div class="top-driver-en" id="top-driver-en"></div>
+
+      <div class="detail-block">
+        <span class="detail-label label-strength" id="lbl-strength"></span>
+        <div class="detail-text" id="txt-strength"></div>
+      </div>
+      <div class="detail-block">
+        <span class="detail-label label-shadow" id="lbl-shadow"></span>
+        <div class="detail-text" id="txt-shadow"></div>
+      </div>
+      <div class="detail-block">
+        <span class="detail-label label-permission" id="lbl-permission"></span>
+        <div class="detail-text" id="txt-permission"></div>
+      </div>
+    </div>
+
+    <div class="service-card">
+      <div class="service-label" id="service-label"></div>
+      <div class="service-text" id="service-text"></div>
+    </div>
+
+    <div class="closing-card">
+      <div class="closing-text" id="closing-text"></div>
+    </div>
+
+    <div class="screenshot-hint" id="screenshot-hint"></div>
+
+    <button class="btn btn-ghost" id="restart-btn" onclick="restart()"></button>
+
+    <div class="footer">MIND HARBOR · PSYCHOLOGICAL COUNSELING CENTER</div>
+  </div>
+
+</div>
+
+<script>
+// ============ DATA ============
+const DATA = {"ui":{"ko":{"lang_name":"한국어","title":"드라이버 체크리스트","subtitle":"나의 다섯 가지 드라이버를 살펴보는 자기탐색 검사","select_language":"언어를 선택해 주세요","intro_title":"검사 안내","intro_text":"다음 75개 문항을 읽고 평소 자신의 모습에 해당하는 정도를 선택해 주세요. 정답은 없습니다. 너무 오래 생각하지 말고, 떠오르는 대로 솔직하게 답해 주세요.","scale_label":"응답 방식","scale_1":"전혀 그렇지 않다","scale_2":"별로 그렇지 않다","scale_3":"보통이다","scale_4":"종종 그렇다","scale_5":"매우 그렇다","start_btn":"검사 시작하기","progress":"진행","question":"문항","of":"/","prev":"이전","next":"다음","submit":"결과 보기","back":"처음으로","result_title":"나의 드라이버 프로파일","result_intro":"각 드라이버의 점수와 가장 높은 드라이버를 확인해 보세요.","score_table":"영역별 점수","driver":"드라이버","score":"점수","max_score":"/ 75","level_low":"낮음","level_mid":"중간","level_high":"높음","top_driver":"가장 높은 드라이버","strength":"강점","shadow":"그림자","permission":"허용 메시지","service_link":"호텔서비스 상황에서","closing":"알아차린 만큼 자유로워집니다. 변화는 작은 한 걸음에서 시작됩니다.","screenshot_hint":"📸 화면을 캡처해서 보관해 주세요","legend_behavior":"평소 행동","legend_stress":"스트레스","legend_strength":"강점"},"en":{"lang_name":"English","title":"Driver Inventory","subtitle":"A self-exploration tool to discover your five drivers","select_language":"Please select your language","intro_title":"Instructions","intro_text":"Read each of the 75 statements below and choose the response that best describes you. There are no right or wrong answers. Please answer honestly based on your first impression.","scale_label":"Response scale","scale_1":"Strongly disagree","scale_2":"Disagree","scale_3":"Neutral","scale_4":"Agree","scale_5":"Strongly agree","start_btn":"Start","progress":"Progress","question":"Question","of":"/","prev":"Previous","next":"Next","submit":"See Results","back":"Restart","result_title":"My Driver Profile","result_intro":"Check your score for each driver and identify your highest driver.","score_table":"Score Summary","driver":"Driver","score":"Score","max_score":"/ 75","level_low":"Low","level_mid":"Medium","level_high":"High","top_driver":"Your Top Driver","strength":"Strength","shadow":"Shadow","permission":"Permission","service_link":"In hotel service situations","closing":"Awareness brings freedom. Change begins with one small step.","screenshot_hint":"📸 Please take a screenshot to keep your results","legend_behavior":"Behavior","legend_stress":"Stress","legend_strength":"Strength"},"zh":{"lang_name":"中文","title":"驱力检测表","subtitle":"探索五种内在驱力的自我觉察工具","select_language":"请选择语言","intro_title":"检测说明","intro_text":"请阅读以下75道题目,根据您平时的实际情况选择最符合的选项。本检测没有正确答案,请凭第一感觉如实作答。","scale_label":"评分方式","scale_1":"完全不符合","scale_2":"比较不符合","scale_3":"一般","scale_4":"比较符合","scale_5":"完全符合","start_btn":"开始检测","progress":"进度","question":"题目","of":"/","prev":"上一题","next":"下一题","submit":"查看结果","back":"重新开始","result_title":"我的驱力分布","result_intro":"请查看各项驱力的得分,并关注最高分的驱力。","score_table":"得分总览","driver":"驱力","score":"得分","max_score":"/ 75","level_low":"低","level_mid":"中","level_high":"高","top_driver":"我的主导驱力","strength":"优势","shadow":"阴影面","permission":"允许讯息","service_link":"在酒店服务情境中","closing":"觉察让我们更自由。改变,始于一小步。","screenshot_hint":"📸 请截图保存您的结果","legend_behavior":"日常行为","legend_stress":"压力反应","legend_strength":"优势"},"ja":{"lang_name":"日本語","title":"ドライバー診断","subtitle":"5つのドライバーを探る自己理解ツール","select_language":"言語を選択してください","intro_title":"ご案内","intro_text":"次の75項目を読み、普段のご自分に最も当てはまるものをお選びください。正解はありません。あまり考え込まず、直感で正直にお答えください。","scale_label":"回答スケール","scale_1":"全くあてはまらない","scale_2":"あまりあてはまらない","scale_3":"どちらでもない","scale_4":"ややあてはまる","scale_5":"とてもあてはまる","start_btn":"診断スタート","progress":"進行状況","question":"設問","of":"/","prev":"戻る","next":"次へ","submit":"結果を見る","back":"最初から","result_title":"私のドライバープロフィール","result_intro":"各ドライバーのスコアと、最も高いドライバーをご確認ください。","score_table":"スコア一覧","driver":"ドライバー","score":"スコア","max_score":"/ 75","level_low":"低","level_mid":"中","level_high":"高","top_driver":"あなたのトップドライバー","strength":"強み","shadow":"影","permission":"許可のことば","service_link":"ホテルサービスの場面で","closing":"気づいた分だけ、自由になれます。変化は小さな一歩から。","screenshot_hint":"📸 画面をスクリーンショットで保存してください","legend_behavior":"普段の行動","legend_stress":"ストレス","legend_strength":"強み"}},"drivers":{"PERFECT":{"ko":{"name":"완벽해야해","en_name":"Be Perfect","strength":"높은 기준, 신뢰감, 책임감 있는 마무리. 디테일을 놓치지 않는 눈과 위험을 미리 예측하는 능력.","shadow":"'충분히 좋음'을 허용하기 어려워 작은 실수에도 자기비난이 일어나기 쉽습니다. 칭찬에도 만족하지 못합니다.","permission":"실수해도 괜찮아. 나는 있는 그대로 충분해.","service":"고객 응대의 정확성과 신뢰를 만드는 힘이 됩니다. 다만 작은 실수에 과도하게 흔들리지 않도록 주의하세요."},"en":{"name":"Be Perfect","en_name":"Be Perfect","strength":"High standards, reliability, careful completion. The ability to catch details and anticipate risks.","shadow":"Difficulty allowing 'good enough.' Small mistakes trigger self-criticism. Praise rarely satisfies.","permission":"It's okay to make mistakes. I am enough as I am.","service":"This driver builds accuracy and trust in customer service. Be careful not to be shaken by small mistakes."},"zh":{"name":"必须完美","en_name":"Be Perfect","strength":"高标准、可信赖、负责任地完成任务。善于关注细节并预见风险。","shadow":"难以接受“足够好”,小错误也会引发自我批评。即使受到称赞也难以满足。","permission":"犯错也没关系。我本来就足够好。","service":"这种驱力能够建立客户服务中的准确性与信任感。但请注意,不要因小错而过度动摇。"},"ja":{"name":"完璧でなければ","en_name":"Be Perfect","strength":"高い基準、信頼感、責任を持って仕上げる力。細部を見逃さず、リスクを先読みする能力。","shadow":"「これで十分」と思えず、小さなミスでも自己批判に陥りがち。褒められても満足できません。","permission":"失敗しても大丈夫。ありのままの私で十分です。","service":"接客の正確さと信頼を築く力になります。ただ、小さなミスで揺らぎすぎないようご注意ください。"}},"PLEASE":{"ko":{"name":"기쁘게 해야해","en_name":"Please Others","strength":"공감 능력, 분위기를 읽는 섬세함, 갈등을 부드럽게 다루는 감각. 조화로운 자리를 만드는 힘.","shadow":"자신의 욕구를 미루는 패턴이 있다면 소진과 분노가 누적됩니다. 거절을 못해 일을 끌어안고, 한계가 와서야 폭발합니다.","permission":"나도 똑같이 중요해. 내 욕구와 의견을 말해도 괜찮아.","service":"고객의 마음을 읽고 따뜻한 서비스를 만드는 핵심 자질입니다. 다만 자신을 잃지 않는 선을 지키세요."},"en":{"name":"Please Others","en_name":"Please Others","strength":"Empathy, sensitivity to atmosphere, smooth conflict handling. The power to create harmony.","shadow":"If your own needs are postponed, exhaustion and resentment build up. Difficulty saying no leads to overload and eventual breakdown.","permission":"I matter too. It's okay to express my needs and opinions.","service":"A core quality for reading guests' minds and providing warm service. Be careful not to lose yourself in the process."},"zh":{"name":"必须取悦他人","en_name":"Please Others","strength":"共情力、敏锐察觉氛围的细致、温和处理冲突的能力。营造和谐的力量。","shadow":"若总是搁置自己的需求,会累积疲惫与怨气。难以拒绝,把事情都揽下来,直到极限才爆发。","permission":"我也同样重要。表达自己的需求和意见是可以的。","service":"这是读懂客人心意、提供温暖服务的核心特质。但请注意保持自我,不要在服务中迷失。"},"ja":{"name":"他人を喜ばせなければ","en_name":"Please Others","strength":"共感力、場の空気を読む繊細さ、葛藤を穏やかに扱う感覚。調和を生み出す力。","shadow":"自分の欲求を後回しにすると、消耗や怒りが蓄積します。断れずに抱え込み、限界で爆発しがち。","permission":"私も同じくらい大切。自分の気持ちや意見を伝えていい。","service":"お客様の心を読み取り、温かなサービスを生み出す核となる資質です。ただし、自分自身を見失わないようご注意ください。"}},"TRY_HARD":{"ko":{"name":"열심히 해야해","en_name":"Try Hard","strength":"높은 추진력, 새로움에 대한 열정, 도전을 두려워하지 않는 에너지. 부지런함과 활기.","shadow":"'시도' 자체에 머물러 결과를 맺지 못하기 쉽습니다. 처음 동기가 식으면 다른 일로 이동하여, 많이 벌리지만 완성은 적습니다.","permission":"애쓰지 않아도 괜찮아. 완성해도 좋고 멈춰도 좋아.","service":"새로운 서비스와 도전적인 업무에서 활기를 불어넣습니다. 다만 완수하는 힘도 함께 키워보세요."},"en":{"name":"Try Hard","en_name":"Try Hard","strength":"Strong drive, passion for novelty, fearless energy for challenges. Diligence and vitality.","shadow":"Tendency to stay in 'trying' without finishing. When initial motivation fades, you shift to something else — many starts, few completions.","permission":"It's okay to ease off. Finishing is good, and stopping is also okay.","service":"Brings energy to new services and challenging tasks. Try also to develop the strength of completion."},"zh":{"name":"必须努力","en_name":"Try Hard","strength":"强大的推动力、对新事物的热情、不畏挑战的能量。勤奋与活力。","shadow":"容易停留在“尝试”而难以完成。初始热情一旦消退,便转向他事——开始很多,完成很少。","permission":"不努力也没关系。完成很好,中途停下也可以。","service":"为新型服务和具挑战性的工作注入活力。同时也请培养“完成”的力量。"},"ja":{"name":"努力しなければ","en_name":"Try Hard","strength":"強い推進力、新しさへの情熱、挑戦を恐れないエネルギー。勤勉さと活力。","shadow":"「試み」自体に留まり、完成に至らないことが起こりがち。最初のやる気が冷めると別の事へ——始めは多く、完成は少なめ。","permission":"頑張らなくても大丈夫。完成してもいいし、止めてもいい。","service":"新しいサービスや挑戦的な業務に活気をもたらします。同時に「やり遂げる力」も育てていきましょう。"}},"STRONG":{"ko":{"name":"강해져야해","en_name":"Be Strong","strength":"위기 대응력, 침착함, 강한 책임감. 흔들리는 상황에서도 일을 완수하고 논리적으로 판단합니다.","shadow":"감정과 도움 요청 통로가 닫혀 있어 무거운 마음이 표현되지 못한 채 누적됩니다. 무너질 때까지 도움을 청하지 않는 위험.","permission":"약함을 보여도 안전해. 도움을 청해도 괜찮아.","service":"예기치 못한 상황에서 침착하게 대응하는 자질입니다. 다만 동료에게 도움을 청하는 연습도 함께 해보세요."},"en":{"name":"Be Strong","en_name":"Be Strong","strength":"Crisis response, composure, strong sense of responsibility. Completes tasks and makes logical decisions even under pressure.","shadow":"Emotions and requests for help are blocked, so heavy feelings accumulate unexpressed. Risk of not asking for help until you collapse.","permission":"It's safe to show vulnerability. It's okay to ask for help.","service":"A quality for staying composed in unexpected situations. Also practice asking colleagues for help."},"zh":{"name":"必须坚强","en_name":"Be Strong","strength":"危机应对力、沉着冷静、强烈的责任感。即使在动荡中也能完成任务并做出理性判断。","shadow":"情绪和求助的通道关闭,沉重的心情无法表达而不断累积。直到崩溃才求助的风险。","permission":"展现脆弱也是安全的。寻求帮助也没关系。","service":"在突发情况中保持冷静的可贵特质。请同时练习向同事寻求帮助。"},"ja":{"name":"強くなければ","en_name":"Be Strong","strength":"危機対応力、冷静さ、強い責任感。揺らぐ状況でも仕事をやり遂げ、論理的に判断します。","shadow":"感情や助けを求める回路が閉じており、重い気持ちが表現されずに蓄積。崩れるまで助けを求めない危険性。","permission":"弱さを見せても安全。助けを求めても大丈夫。","service":"想定外の場面で冷静に対応する資質です。同僚に助けを求める練習も、合わせて行ってみましょう。"}},"HURRY":{"ko":{"name":"서둘러야해","en_name":"Hurry Up","strength":"빠른 판단, 신속한 처리, 높은 생산성. 마감 전에 일을 끝내 놓는 안정감.","shadow":"시간 압박이 일상화되면 실수와 신체 긴장이 누적됩니다. 빨리 끝내려다 정작 디테일을 놓치는 역설.","permission":"천천히 해도 괜찮아. 시간이 충분히 있어.","service":"피크타임과 빠른 응대가 필요한 서비스 현장에서 큰 강점이 됩니다. 다만 호흡을 가다듬는 시간도 챙기세요."},"en":{"name":"Hurry Up","en_name":"Hurry Up","strength":"Quick judgment, swift execution, high productivity. The reassurance of finishing before deadlines.","shadow":"When time pressure becomes routine, mistakes and physical tension accumulate. The paradox of missing details while rushing to finish.","permission":"It's okay to slow down. There is enough time.","service":"A great strength in peak hours and fast-paced service environments. Remember to take breathing space too."},"zh":{"name":"必须快","en_name":"Hurry Up","strength":"判断迅速、处理快捷、生产力高。能在期限前完成任务带来的安心感。","shadow":"时间压力一旦常态化,错误和身体紧张便会累积。匆忙赶完,反而错失细节的悖论。","permission":"慢一点也没关系。时间是足够的。","service":"在高峰时段和需要快速应对的服务现场,这是巨大的优势。但也请记得给自己留出喘息的时间。"},"ja":{"name":"急がなければ","en_name":"Hurry Up","strength":"素早い判断、迅速な処理、高い生産性。締切前に終わらせておく安心感。","shadow":"時間的プレッシャーが常態化すると、ミスや身体の緊張が蓄積。急ぐあまり細部を見落とすという逆説。","permission":"ゆっくりでも大丈夫。時間は十分にある。","service":"ピークタイムや素早い対応が求められる現場で大きな強みになります。同時に、呼吸を整える時間も大切に。"}}},"questions":[{"id":1,"driver":"PERFECT","group":1,"ko":"이야기할 때 '확실히' '혹시' '말하자면' '아마도' 등과 같은 삽입구를 사용한다","en":"When I speak, I tend to use qualifying words like 'certainly,' 'perhaps,' 'in a sense,' or 'maybe.'","zh":"说话时,我经常使用“确实”“或许”“也就是说”“大概”这类插入语。","ja":"話すときに「確かに」「もしかすると」「言ってみれば」「たぶん」などの言い回しをよく使う。"},{"id":2,"driver":"PERFECT","group":1,"ko":"이야기할 때 허리를 똑바로 편다","en":"I keep my back straight when I speak.","zh":"说话时,我会挺直腰背。","ja":"話すとき、背筋をまっすぐ伸ばしている。"},{"id":3,"driver":"PERFECT","group":1,"ko":"마음속으로 '나는 좀 더 완벽해야 해'라는 생각이 든다","en":"I often think to myself, 'I should be more perfect.'","zh":"我心里常常想:“我应该再完美一点。”","ja":"心の中で「もっと完璧でなければ」と思うことがある。"},{"id":4,"driver":"PERFECT","group":1,"ko":"이야기할 때 '첫째는' '둘째는' 또는 '하나는' '둘은'이라고 말하거나 손가락으로 헤아린다","en":"When I speak, I tend to say 'first,' 'second,' 'one,' 'two,' or count points on my fingers.","zh":"说话时,我会用“第一”“第二”或“一是”“二是”,或者用手指数着说。","ja":"話すときに「第一に」「第二に」「一つには」「二つには」と言ったり、指で数えながら話したりする。"},{"id":5,"driver":"PERFECT","group":1,"ko":"매사에 확실하고 정확하고 체계적으로 일을 수행한다","en":"I approach every task with certainty, accuracy, and a systematic method.","zh":"我处理任何事情都力求明确、精确、有条理。","ja":"何事もはっきりと、正確に、体系立てて進める。"},{"id":6,"driver":"PERFECT","group":2,"ko":"자신 또는 타인에게 언제나 높은 기준을 적용한다","en":"I always apply high standards to myself and to others.","zh":"我对自己和他人总是设定很高的标准。","ja":"自分にも他人にも、常に高い基準を求めてしまう。"},{"id":7,"driver":"PERFECT","group":2,"ko":"다른 사람에게 칭찬을 받아도 좀처럼 만족하지 못하는 경우가 많다","en":"Even when others praise me, I rarely feel satisfied.","zh":"即使受到他人的称赞,我也很难感到满足。","ja":"他人から褒められても、なかなか満足できないことが多い。"},{"id":8,"driver":"PERFECT","group":2,"ko":"초기 계획 단계에서부터 필요 이상으로 많은 시간을 할애하는 경향이 있다","en":"I tend to spend far more time than necessary on initial planning.","zh":"在前期规划阶段,我常常会投入超出必要的时间。","ja":"初期の計画段階から、必要以上に時間をかけてしまう傾向がある。"},{"id":9,"driver":"PERFECT","group":2,"ko":"스스로 완벽해야 한다고 생각하기 때문에 실수를 용납하기 힘들다","en":"Because I believe I must be perfect, I find it hard to forgive my own mistakes.","zh":"因为认为自己必须完美,所以很难容许犯错。","ja":"自分は完璧でなければと思うため、ミスを許せない。"},{"id":10,"driver":"PERFECT","group":2,"ko":"내가 생각한 대로 일이 완벽하게 진행되지 않으면 마음이 불편하다","en":"I feel uneasy when things don't go exactly as I planned.","zh":"事情如果没有按我设想的那样完美进行,我就会感到不安。","ja":"自分の思い通りに完璧に事が運ばないと、落ち着かない。"},{"id":11,"driver":"PERFECT","group":3,"ko":"실패할 것에 대비해 제2의 대안을 마련하는 편이다","en":"I tend to prepare a backup plan in case things go wrong.","zh":"我习惯为可能的失败准备好备选方案。","ja":"失敗に備えて、第二の選択肢を用意しておくほうだ。"},{"id":12,"driver":"PERFECT","group":3,"ko":"무슨 일이든 대충 넘어가지 않고 확실하게 하려고 한다","en":"I refuse to do things halfway; I want to handle every task thoroughly.","zh":"做事不愿马虎,总想确实做到位。","ja":"何事も適当に済ませず、きちんとやろうとする。"},{"id":13,"driver":"PERFECT","group":3,"ko":"정확하게 빈틈없이 일을 처리하기 때문에 신뢰 있는 사람으로 평가받는다","en":"Because I handle tasks precisely and without gaps, others see me as reliable.","zh":"因为处理事情精准、不留漏洞,我常被人视为可靠的人。","ja":"正確で抜けのない仕事をするため、信頼できる人と評価される。"},{"id":14,"driver":"PERFECT","group":3,"ko":"세부적인 사항까지 꼼꼼하게 확인하여 일을 처리한다","en":"I check every detail carefully when completing a task.","zh":"处理事情时,我会仔细确认每一个细节。","ja":"細部まで丁寧に確認しながら物事を進める。"},{"id":15,"driver":"PERFECT","group":3,"ko":"무슨 일이든 완벽하게 확인하고 철저하게 준비한다","en":"I verify everything thoroughly and prepare carefully for any task.","zh":"无论什么事,我都会彻底确认并充分准备。","ja":"何事も完璧に確認し、徹底的に準備する。"},{"id":16,"driver":"PLEASE","group":1,"ko":"이야기할 때 상대방 쪽으로 몸을 기울이거나 고개를 자주 끄덕이거나 손바닥을 위로 올리는 등 제스처를 한다","en":"When speaking, I lean toward the other person, nod frequently, or use open-hand gestures.","zh":"说话时,我会身体前倾、频频点头,或用手心向上等姿势配合。","ja":"話すとき、相手の方に体を傾けたり、頻繁にうなずいたり、手のひらを上に向けるなどのジェスチャーをする。"},{"id":17,"driver":"PLEASE","group":1,"ko":"이야기의 내용이 처음에는 긍정적으로 시작하지만 나중에는 부정적으로 끝나는 경향이 있다","en":"My conversations tend to start positively but end on a negative note.","zh":"我说话往往一开始很积极,后面却以消极结尾。","ja":"話の内容が、最初は前向きでも、最後はネガティブに終わる傾向がある。"},{"id":18,"driver":"PLEASE","group":1,"ko":"미소를 지을 때는 윗니와 아랫니가 훤히 보일 정도로 웃는다","en":"When I smile, I show both my upper and lower teeth openly.","zh":"我微笑时,上下牙都会清楚地露出来。","ja":"笑うとき、上の歯と下の歯がはっきり見えるほど笑う。"},{"id":19,"driver":"PLEASE","group":1,"ko":"다른 사람들의 욕구나 필요, 혹은 기분에 관심이 많다","en":"I pay close attention to others' needs, wants, and feelings.","zh":"我很关注别人的需求、想要的东西和情绪。","ja":"他の人の欲求や必要、気持ちにとても関心がある。"},{"id":20,"driver":"PLEASE","group":1,"ko":"소화기관이 자주 불편하다","en":"I often have digestive discomfort.","zh":"我经常感到肠胃不舒服。","ja":"胃腸の調子がよくないことが多い。"},{"id":21,"driver":"PLEASE","group":2,"ko":"타인의 의견을 들어주고 동의하는 것에 많은 시간을 쓰는 편이다","en":"I tend to spend a lot of time listening to and agreeing with others.","zh":"我倾向于花很多时间倾听并附和他人的意见。","ja":"他人の意見を聞き、同意することに多くの時間を使ってしまうほうだ。"},{"id":22,"driver":"PLEASE","group":2,"ko":"다른 사람이 자신의 개인적인 일에 간섭하더라도 그냥 내버려 두는 경우가 있다","en":"Even when others interfere with my personal matters, I sometimes just let it pass.","zh":"即使别人干涉我的私事,我有时也会任由其发生。","ja":"他人が自分の個人的なことに干渉しても、そのままにしてしまうことがある。"},{"id":23,"driver":"PLEASE","group":2,"ko":"타인의 기분을 상하게 하는 말과 행동을 회피하는 편이다","en":"I tend to avoid words or actions that might upset others.","zh":"我倾向于避免说出或做出会伤害他人感受的话和事。","ja":"相手の気分を害するような言動は避けようとする。"},{"id":24,"driver":"PLEASE","group":2,"ko":"다른 사람을 비판하는 것이 조심스러워 피드백하는 것이 꺼려질 때가 많다","en":"I am cautious about criticizing others, so I often hesitate to give feedback.","zh":"我对批评他人比较谨慎,常常不愿给出反馈。","ja":"他人を批判することにためらいがあり、フィードバックを伝えるのを避けてしまうことが多い。"},{"id":25,"driver":"PLEASE","group":2,"ko":"자신의 의견이나 소신을 상대방에게 말하는 것이 힘들다","en":"I find it difficult to express my own opinions or convictions to others.","zh":"向他人表达自己的意见或主张,对我来说很困难。","ja":"自分の意見や信念を相手に伝えるのが苦手だ。"},{"id":26,"driver":"PLEASE","group":3,"ko":"소외되는 사람 없이 모든 사람의 의견이 조화롭게 반영될 수 있도록 돕는 역할을 한다","en":"I play the role of making sure everyone's opinion is heard so no one is left out.","zh":"我会努力让每个人的意见都得到和谐的反映,不让任何人被冷落。","ja":"誰も取り残されず、皆の意見がうまく反映されるよう支える役割を担う。"},{"id":27,"driver":"PLEASE","group":3,"ko":"다른 사람과 어울려 살아가야 한다고 생각한다","en":"I believe people should live in harmony with one another.","zh":"我认为人应该与他人和谐相处地生活。","ja":"人とは仲良く共に生きていくべきだと考えている。"},{"id":28,"driver":"PLEASE","group":3,"ko":"비록 다른 사람의 일이 결과가 좋지 않아도 괜찮다고 위로해 준다","en":"Even when others' efforts don't end well, I comfort them and say it's okay.","zh":"即便别人的事情结果不好,我也会安慰他们说没关系。","ja":"他人の取り組みの結果がよくなかったときも、大丈夫だよと慰める。"},{"id":29,"driver":"PLEASE","group":3,"ko":"깊은 배려심으로 다른 사람들이 무엇을 원하는지 잘 알아차리는 편이다","en":"With deep consideration, I am good at noticing what others want.","zh":"我有较深的体贴心,擅长察觉他人真正想要的是什么。","ja":"深い思いやりで、他人が何を望んでいるかをよく察するほうだ。"},{"id":30,"driver":"PLEASE","group":3,"ko":"타인을 이해하고 공감하는 능력이 뛰어나다","en":"I am good at understanding and empathizing with others.","zh":"我有较强的理解和共情他人的能力。","ja":"他人を理解し共感する力に長けている。"},{"id":31,"driver":"TRY_HARD","group":1,"ko":"이야기할 때 목소리를 낮추고 억제하는 듯하고 목 근육을 긴장시킨다","en":"When speaking, I lower my voice as if restraining it, and tense the muscles in my neck.","zh":"说话时,我会压低声音,显得有些克制,颈部肌肉也会紧绷。","ja":"話すとき、声を低めて抑えるようにし、首の筋肉が緊張する。"},{"id":32,"driver":"TRY_HARD","group":1,"ko":"'~하려 한다' '노력할 거야'라는 말을 하며 중얼거리거나 망설이는 듯하다","en":"I often say 'I'll try' or 'I'll make an effort,' muttering or sounding hesitant.","zh":"我常说“我会试试看”“我会努力的”,语气有些含糊或迟疑。","ja":"「やってみます」「努力します」と言いながら、つぶやくように、迷うように話すことがある。"},{"id":33,"driver":"TRY_HARD","group":1,"ko":"코 위에 두 개의 수직 주름이 나타나도록 눈썹을 긴장시키고 미간을 찡그린다","en":"I tense my eyebrows and furrow my brow, forming two vertical lines above my nose.","zh":"我会皱起眉头,使鼻梁上方出现两道竖纹。","ja":"眉に力を入れて眉間にしわを寄せ、鼻の上に二本の縦じわができる。"},{"id":34,"driver":"TRY_HARD","group":1,"ko":"새로운 일이나 여러 가지 일에 한꺼번에 관심을 갖는 편이다","en":"I tend to take interest in new or multiple things all at once.","zh":"我容易同时对新事物或多件事情感兴趣。","ja":"新しいことや、複数のことに一度に関心を持つほうだ。"},{"id":35,"driver":"TRY_HARD","group":1,"ko":"어깨 근육 부분과 위장 부분에 긴장감이 있다","en":"I feel tension in my shoulder muscles and stomach area.","zh":"我的肩膀肌肉和胃部常常感到紧绷。","ja":"肩や胃のあたりに緊張感がある。"},{"id":36,"driver":"TRY_HARD","group":2,"ko":"성공보다는 시도하는 데 주력하기 때문에 처음 열정이 식는 경우가 많다","en":"Because I focus on trying rather than succeeding, my initial passion often fades.","zh":"我更专注于“尝试”而非“成功”,所以最初的热情常常会消退。","ja":"成功より「試みること」に重きを置くので、最初の情熱が冷めてしまうことが多い。"},{"id":37,"driver":"TRY_HARD","group":2,"ko":"일을 시작할 때는 상당한 동기를 보이지만 이후에는 곧잘 지루함을 느낀다","en":"I show strong motivation at the start of a task but soon begin to feel bored.","zh":"我开始一件事时干劲十足,但之后很快就会感到无聊。","ja":"始めるときはやる気にあふれているが、その後すぐに飽きを感じることが多い。"},{"id":38,"driver":"TRY_HARD","group":2,"ko":"많은 일을 시도하지만 정작 결과를 맺지 못하는 경우가 많다","en":"I take on many things but often fail to bring them to completion.","zh":"我尝试很多事,但常常无法真正完成。","ja":"多くのことに手を出すが、結局やり遂げられないことが多い。"},{"id":39,"driver":"TRY_HARD","group":2,"ko":"무엇이든 열심히 하고 있어야 마음이 편하다","en":"I feel at ease only when I am working hard at something.","zh":"无论做什么,只有努力着我才感到安心。","ja":"何かに一生懸命取り組んでいないと落ち着かない。"},{"id":40,"driver":"TRY_HARD","group":2,"ko":"첫 번째 일이 진행되기도 전에 다른 일에 관심을 두는 경향이 있다","en":"I tend to shift my interest to another task before the first one is even underway.","zh":"第一件事还没推进,我就已经把注意力转向另一件事了。","ja":"最初のことが進む前に、別のことに関心を移してしまう傾向がある。"},{"id":41,"driver":"TRY_HARD","group":3,"ko":"결과보다는 노력하는 자세가 중요하다고 생각한다","en":"I value the attitude of effort more than the outcome itself.","zh":"我认为努力的态度比结果更重要。","ja":"結果よりも努力する姿勢が大切だと思っている。"},{"id":42,"driver":"TRY_HARD","group":3,"ko":"다른 사람들로부터 부지런하다는 말을 자주 듣는 편이다","en":"People often tell me that I am diligent.","zh":"我经常被人说勤奋。","ja":"周囲から「勤勉だ」とよく言われる。"},{"id":43,"driver":"TRY_HARD","group":3,"ko":"어떤 일이든 열정적으로 임하며 추진력이 강하다","en":"I approach any task with passion and a strong drive.","zh":"无论做什么事,我都充满热情,推动力强。","ja":"どんなことにも情熱的に取り組み、推進力がある。"},{"id":44,"driver":"TRY_HARD","group":3,"ko":"한 번에 다양한 많은 종류의 활동을 시작할 때 활기가 넘친다","en":"I feel energized when I begin many different kinds of activities at once.","zh":"当我同时开始多种活动时,会精力充沛。","ja":"さまざまな活動を一度に始めるとき、活気にあふれる。"},{"id":45,"driver":"TRY_HARD","group":3,"ko":"새로운 일을 시작할 때 에너지가 최고조로 올라간다","en":"My energy peaks when I start something new.","zh":"开始新事物时,我的能量会达到最高点。","ja":"新しいことを始めるときに、エネルギーが最も高まる。"},{"id":46,"driver":"STRONG","group":1,"ko":"나의 나약한 모습을 다른 사람들이 알게 하고 싶지 않다","en":"I don't want others to see my vulnerable side.","zh":"我不想让别人看到自己软弱的一面。","ja":"自分の弱い姿を他人に知られたくない。"},{"id":47,"driver":"STRONG","group":1,"ko":"어조는 고르고 단조로우며 얼굴 표정이나 제스처가 없다","en":"My tone is even and monotone, with little facial expression or gesture.","zh":"我说话语调平稳单调,几乎没有表情或动作。","ja":"話す調子は平坦で単調、表情や身振りはあまりない。"},{"id":48,"driver":"STRONG","group":1,"ko":"주변 사람들에게 나의 필요나 욕구, 감정들을 말하지 않는다","en":"I don't share my needs, desires, or feelings with people around me.","zh":"我不会向周围的人表达自己的需求、欲望或情绪。","ja":"周囲の人に、自分の必要や欲求、感情を伝えない。"},{"id":49,"driver":"STRONG","group":1,"ko":"팔짱을 끼거나 다리를 꼬고 앉는다","en":"I tend to sit with my arms folded or legs crossed.","zh":"我常常抱着胳膊或翘着腿坐。","ja":"腕を組んだり、足を組んで座ることが多い。"},{"id":50,"driver":"STRONG","group":1,"ko":"신체 감각이 무감각하고 뻣뻣하다","en":"My bodily sensations feel numb or stiff.","zh":"我的身体感觉常常麻木、僵硬。","ja":"身体の感覚が鈍く、こわばっている。"},{"id":51,"driver":"STRONG","group":2,"ko":"어려움이 있어도 도움을 요청하지 않고 혼자서 책임지려 하는 경우가 많다","en":"Even when I struggle, I tend to take responsibility alone instead of asking for help.","zh":"即使遇到困难,我也常常独自承担,不向他人求助。","ja":"困っていても助けを求めず、一人で抱え込もうとすることが多い。"},{"id":52,"driver":"STRONG","group":2,"ko":"감정을 있는 그대로 표현하는 것은 자신의 나약함을 드러내는 일이라 생각한다","en":"I see expressing emotions openly as a sign of weakness.","zh":"我认为坦率表达情绪等于暴露自己的软弱。","ja":"感情をそのまま表すのは弱さをさらけ出すことだと思っている。"},{"id":53,"driver":"STRONG","group":2,"ko":"속내를 드러내지 않기 때문에 어려움이 없는 사람처럼 보일 때가 많다","en":"Because I don't reveal my inner self, I often appear to have no troubles.","zh":"因为不流露内心,我常常显得像是没有任何烦恼的人。","ja":"本心を見せないため、悩みのない人のように見られることが多い。"},{"id":54,"driver":"STRONG","group":2,"ko":"다른 사람들로부터 '당신의 속을 잘 모르겠다'는 말을 듣는 편이다","en":"People often tell me, 'I can't really tell what you're thinking.'","zh":"他人常对我说:“我看不透你心里在想什么。”","ja":"周囲から「あなたの本心がよく分からない」と言われることが多い。"},{"id":55,"driver":"STRONG","group":2,"ko":"다른 사람이 뭐라고 하든 별로 상관하지 않는다","en":"I don't really mind what others say about me.","zh":"无论别人说什么,我都不太在意。","ja":"他人が何を言おうと、あまり気にしないほうだ。"},{"id":56,"driver":"STRONG","group":3,"ko":"사사로운 감정에 얽매이지 않고 주어진 일을 처리한다","en":"I handle tasks without being swayed by personal feelings.","zh":"我处理事务时不受私人情绪牵绊。","ja":"個人的な感情にとらわれず、与えられた仕事を進める。"},{"id":57,"driver":"STRONG","group":3,"ko":"위기에 강하고 갈등 상황에서도 침착하게 대응한다","en":"I stay strong in crises and respond calmly to conflict.","zh":"我在危机和冲突中能够保持冷静应对。","ja":"危機に強く、対立する場面でも落ち着いて対応できる。"},{"id":58,"driver":"STRONG","group":3,"ko":"유쾌하지 않은 업무이지만 맡은 일에 대해서는 성실하게 완수해 나가는 편이다","en":"Even with unpleasant tasks, I tend to carry out what I'm responsible for sincerely.","zh":"即使是不愉快的工作,只要是我承担的,我都会认真完成。","ja":"気の進まない業務でも、引き受けた仕事は誠実に最後までやり遂げる。"},{"id":59,"driver":"STRONG","group":3,"ko":"강한 의무감과 책임감을 가지고 있다","en":"I have a strong sense of duty and responsibility.","zh":"我有强烈的义务感和责任感。","ja":"強い義務感と責任感を持っている。"},{"id":60,"driver":"STRONG","group":3,"ko":"스트레스 상황에서 감정적으로 반응하기보다 논리적으로 사고한다","en":"Under stress, I tend to think logically rather than react emotionally.","zh":"面对压力时,我倾向于理性思考,而不是情绪化反应。","ja":"ストレス状況では、感情的に反応するより論理的に考える。"},{"id":61,"driver":"HURRY","group":1,"ko":"이야기할 때 말이 빠르고 다른 사람의 말을 차단하듯이 이야기하고 만다","en":"I speak quickly and tend to cut others off mid-sentence.","zh":"我说话速度快,容易打断别人的话。","ja":"話すスピードが速く、相手の話を遮るように話してしまうことがある。"},{"id":62,"driver":"HURRY","group":1,"ko":"'서둘러' '빨리' '시작해' '시간 없어' 등의 재촉하는 말을 한다","en":"I often say things like 'hurry,' 'quickly,' 'get started,' or 'we don't have time.'","zh":"我经常说“快点”“赶紧”“开始吧”“没时间了”这类催促的话。","ja":"「急いで」「早く」「始めよう」「時間がない」など、せかすような言葉をよく使う。"},{"id":63,"driver":"HURRY","group":1,"ko":"마음이 급해서 손가락으로 톡톡 두드리거나 발을 툭툭 치거나, 의자에서 꿈틀거리거나 시선을 빠르게 자주 옮긴다","en":"Out of impatience, I tap my fingers or feet, fidget in my chair, or shift my gaze rapidly.","zh":"心急时,我会用手指敲、用脚跺、在椅子上扭动,或视线频繁地快速移动。","ja":"気がせいて、指で叩いたり、足を揺すったり、椅子の上でもぞもぞしたり、視線を素早く動かしたりする。"},{"id":64,"driver":"HURRY","group":1,"ko":"시계를 자주 본다","en":"I check the clock frequently.","zh":"我经常看时间。","ja":"時計を頻繁に見る。"},{"id":65,"driver":"HURRY","group":1,"ko":"시간 내에 끝낼 수 없을 것 같다는 생각이 들면 안절부절못한다","en":"When I sense I won't finish on time, I become restless.","zh":"一旦觉得无法按时完成,我就会坐立不安。","ja":"時間内に終わらなさそうだと感じると、落ち着かなくなる。"},{"id":66,"driver":"HURRY","group":2,"ko":"일을 빨리 끝내려는 충동 때문에 실수나 수정 사항이 빈번히 발생한다","en":"My urge to finish quickly often leads to mistakes and revisions.","zh":"因为急于完成,我经常出现错误或需要返工。","ja":"早く終わらせたい衝動から、ミスや手直しがよく発生する。"},{"id":67,"driver":"HURRY","group":2,"ko":"시간 안에 일을 해결하지 못할까 봐 불안할 때가 많다","en":"I often feel anxious about not finishing things in time.","zh":"我常常担心无法在时间内完成任务而感到不安。","ja":"時間内に終わらないのではと不安になることが多い。"},{"id":68,"driver":"HURRY","group":2,"ko":"시간에 대한 중압감을 많이 느끼는 편이다","en":"I often feel under pressure from time.","zh":"我经常感受到时间带来的压力。","ja":"時間に対する重圧を感じやすい方だ。"},{"id":69,"driver":"HURRY","group":2,"ko":"과제를 제출하는 시간이 다가올수록 마음이 조급해진다","en":"As a deadline approaches, I grow increasingly anxious.","zh":"随着交作业的时间临近,我会越来越心急。","ja":"課題の提出時間が近づくほど、気が焦ってくる。"},{"id":70,"driver":"HURRY","group":2,"ko":"행동이나 말이 느린 사람들을 보면 답답함을 느낄 때가 있다","en":"I sometimes feel frustrated with people who act or speak slowly.","zh":"看到行动或说话慢的人,我有时会感到不耐烦。","ja":"行動や話し方が遅い人を見ると、もどかしく感じることがある。"},{"id":71,"driver":"HURRY","group":3,"ko":"약속된 시간 전에 일을 재빠르게 끝내 놓는다","en":"I finish tasks quickly, before the agreed time.","zh":"我会赶在约定时间前迅速完成任务。","ja":"約束の時間より前に、素早く仕事を終わらせておく。"},{"id":72,"driver":"HURRY","group":3,"ko":"무엇이든 빠르게 결정하고 빠르게 행동하는 편이다","en":"I tend to decide and act quickly.","zh":"我做决定和行动都比较快。","ja":"何でも素早く決め、素早く動くタイプだ。"},{"id":73,"driver":"HURRY","group":3,"ko":"짧은 시간 내에 많은 일을 빨리 처리하는 편이다","en":"I tend to handle many tasks rapidly in a short period.","zh":"我擅长在短时间内快速处理大量事务。","ja":"短い時間で多くのことを素早く処理するほうだ。"},{"id":74,"driver":"HURRY","group":3,"ko":"다른 사람들로부터 일 처리가 빠르다는 말을 자주 듣는다","en":"People often say I work quickly.","zh":"别人常说我做事很快。","ja":"周囲から「仕事が早い」とよく言われる。"},{"id":75,"driver":"HURRY","group":3,"ko":"어떤 일이 주어졌을 때 처리하는 속도가 빠르다","en":"When I am given a task, I handle it quickly.","zh":"无论什么事情交给我,我处理得都很快。","ja":"何か任されたとき、その処理速度が速い。"}]};
+
+// ============ STATE ============
+let currentLang = 'ko';
+let currentIdx = 0;
+let answers = new Array(75).fill(null);
+
+// ============ HELPERS ============
+function $(id) { return document.getElementById(id); }
+function show(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(screenId).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function t(key) { return DATA.ui[currentLang][key] || ''; }
+
+// ============ LANGUAGE SELECT ============
+function selectLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  renderIntro();
+  show('screen-intro');
+}
+
+// ============ INTRO ============
+function renderIntro() {
+  $('intro-title').textContent = t('title');
+  $('intro-subtitle').textContent = t('subtitle');
+  $('intro-heading').textContent = t('intro_title');
+  $('intro-body').textContent = t('intro_text');
+  $('scale-info-label').textContent = t('scale_label');
+  $('s1').textContent = t('scale_1');
+  $('s2').textContent = t('scale_2');
+  $('s3').textContent = t('scale_3');
+  $('s4').textContent = t('scale_4');
+  $('s5').textContent = t('scale_5');
+  $('start-btn').textContent = t('start_btn');
+}
+
+// ============ TEST ============
+function startTest() {
+  currentIdx = 0;
+  answers = new Array(75).fill(null);
+  renderQuestion();
+  show('screen-test');
+}
+
+function renderQuestion() {
+  const q = DATA.questions[currentIdx];
+  const total = DATA.questions.length;
+  const pct = ((currentIdx + 1) / total) * 100;
+  $('progress-fill').style.width = pct + '%';
+  $('progress-text').textContent = `${t('question')} ${currentIdx + 1} ${t('of')} ${total}`;
+  $('q-num').textContent = `Q${String(currentIdx + 1).padStart(2, '0')}`;
+  $('q-text').textContent = q[currentLang];
+
+  const optsEl = $('q-options');
+  optsEl.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const opt = document.createElement('div');
+    opt.className = 'option' + (answers[currentIdx] === i ? ' selected' : '');
+    opt.innerHTML = `<div class="option-num">${i}</div><div class="option-label">${t('scale_' + i)}</div>`;
+    opt.onclick = () => selectOption(i);
+    optsEl.appendChild(opt);
+  }
+
+  $('prev-btn').textContent = t('prev');
+  $('prev-btn').style.visibility = currentIdx === 0 ? 'hidden' : 'visible';
+  $('next-btn').textContent = currentIdx === total - 1 ? t('submit') : t('next');
+  $('next-btn').disabled = answers[currentIdx] === null;
+}
+
+function selectOption(val) {
+  answers[currentIdx] = val;
+  // 시각적 업데이트
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.classList.toggle('selected', i + 1 === val);
+    el.querySelector('.option-num').style.background = (i + 1 === val) ? 'var(--coral)' : 'var(--bg)';
+    el.querySelector('.option-num').style.color = (i + 1 === val) ? 'white' : 'var(--text-soft)';
+  });
+  $('next-btn').disabled = false;
+  // 자동 진행 (잠시 후)
+  setTimeout(() => {
+    if (currentIdx < DATA.questions.length - 1) {
+      nextQ();
+    }
+  }, 250);
+}
+
+function prevQ() {
+  if (currentIdx > 0) {
+    currentIdx--;
+    renderQuestion();
+  }
+}
+
+function nextQ() {
+  if (answers[currentIdx] === null) return;
+  if (currentIdx < DATA.questions.length - 1) {
+    currentIdx++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+// ============ RESULT ============
+function computeScores() {
+  const scores = { PERFECT: 0, PLEASE: 0, TRY_HARD: 0, STRONG: 0, HURRY: 0 };
+  // group별 점수: { PERFECT: {1:행동, 2:스트레스, 3:강점}, ... }
+  const groupScores = {
+    PERFECT:  {1: 0, 2: 0, 3: 0},
+    PLEASE:   {1: 0, 2: 0, 3: 0},
+    TRY_HARD: {1: 0, 2: 0, 3: 0},
+    STRONG:   {1: 0, 2: 0, 3: 0},
+    HURRY:    {1: 0, 2: 0, 3: 0},
+  };
+  DATA.questions.forEach((q, i) => {
+    if (answers[i] !== null) {
+      scores[q.driver] += answers[i];
+      if (q.group) groupScores[q.driver][q.group] += answers[i];
+    }
+  });
+  return { total: scores, groups: groupScores };
+}
+
+function levelOf(score) {
+  // 75점 만점 (15-75): 15-35 낮음, 36-55 중간, 56-75 높음
+  if (score >= 56) return 'high';
+  if (score >= 36) return 'mid';
+  return 'low';
+}
+
+function showResult() {
+  const result = computeScores();
+  const scores = result.total;
+  const groupScores = result.groups;
+  const driverOrder = ['PERFECT', 'PLEASE', 'TRY_HARD', 'STRONG', 'HURRY'];
+
+  // 최고 점수 드라이버
+  let topDriver = driverOrder[0];
+  driverOrder.forEach(d => { if (scores[d] > scores[topDriver]) topDriver = d; });
+
+  // 헤더
+  $('result-title').textContent = t('result_title');
+  $('result-intro').textContent = t('result_intro');
+  $('score-table-title').textContent = t('score_table');
+
+  // 범례 (한 번만 생성)
+  const legendEl = $('score-legend');
+  if (legendEl) {
+    legendEl.innerHTML = `
+      <span class="legend-item"><span class="legend-dot" style="background:var(--navy)"></span>${t('legend_behavior')}</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--coral)"></span>${t('legend_stress')}</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--gold)"></span>${t('legend_strength')}</span>
+    `;
+  }
+
+  // 점수 리스트 (누적 막대)
+  const listEl = $('score-list');
+  listEl.innerHTML = '';
+  driverOrder.forEach(d => {
+    const info = DATA.drivers[d][currentLang];
+    const score = scores[d];
+    const g1 = groupScores[d][1]; // 행동
+    const g2 = groupScores[d][2]; // 스트레스
+    const g3 = groupScores[d][3]; // 강점
+    // 각 세그먼트의 전체 막대 대비 %
+    const pct1 = (g1 / 75) * 100;
+    const pct2 = (g2 / 75) * 100;
+    const pct3 = (g3 / 75) * 100;
+    const lvl = levelOf(score);
+    const lvlText = t('level_' + (lvl === 'high' ? 'high' : lvl === 'mid' ? 'mid' : 'low'));
+    const isTop = d === topDriver;
+    const row = document.createElement('div');
+    row.className = 'score-row' + (isTop ? ' top' : '');
+    row.innerHTML = `
+      <div class="score-label">${info.name}<small>${info.en_name}</small></div>
+      <div class="score-bar-wrap">
+        <div class="seg seg-behavior" style="width:0%" data-target="${pct1}" title="${t('legend_behavior')} ${g1}">${g1 >= 6 ? g1 : ''}</div>
+        <div class="seg seg-stress" style="width:0%" data-target="${pct2}" title="${t('legend_stress')} ${g2}">${g2 >= 6 ? g2 : ''}</div>
+        <div class="seg seg-strength" style="width:0%" data-target="${pct3}" title="${t('legend_strength')} ${g3}">${g3 >= 6 ? g3 : ''}</div>
+        <span class="score-total">${score}</span>
+      </div>
+      <span class="level-badge">${lvlText}</span>
+    `;
+    listEl.appendChild(row);
+    // 막대 애니메이션
+    setTimeout(() => {
+      row.querySelectorAll('.seg').forEach(seg => {
+        seg.style.width = seg.dataset.target + '%';
+      });
+    }, 100);
+  });
+
+  // 탑 드라이버 카드
+  const topInfo = DATA.drivers[topDriver][currentLang];
+  $('top-driver-label').textContent = t('top_driver');
+  $('top-driver-name').textContent = topInfo.name;
+  $('top-driver-en').textContent = topInfo.en_name.toUpperCase();
+  $('lbl-strength').textContent = t('strength');
+  $('txt-strength').textContent = topInfo.strength;
+  $('lbl-shadow').textContent = t('shadow');
+  $('txt-shadow').textContent = topInfo.shadow;
+  $('lbl-permission').textContent = t('permission');
+  $('txt-permission').textContent = topInfo.permission;
+
+  // 서비스 카드
+  $('service-label').textContent = t('service_link');
+  $('service-text').textContent = topInfo.service;
+
+  // 클로징
+  $('closing-text').textContent = t('closing');
+  $('screenshot-hint').textContent = t('screenshot_hint');
+  $('restart-btn').textContent = t('back');
+
+  show('screen-result');
+}
+
+function restart() {
+  currentIdx = 0;
+  answers = new Array(75).fill(null);
+  show('screen-lang');
+}
+</script>
+</body>
+</html>
